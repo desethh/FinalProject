@@ -24,6 +24,21 @@ def login():
 
     return render_template("login.html")
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    data = {
+        isdone: request.form["isdone"],
+    }
+    if request.method == "POST":
+        r = requests.post(f"{GO_BACKEND}/register", data=data)
+        if r.status_code == 200:
+            auth = r.json()
+            if auth == True:
+                return redirect("/login")
+        else:
+            return "Registration failed", 400
+    return render_template("register.html")
+
 @app.route("/")
 def index():
     if not session.get("auth"):

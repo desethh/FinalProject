@@ -22,37 +22,69 @@ type User struct {
 }
 
 func LoginPage(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+
+		var isEx int
+		row := DB.QueryRow("SELECT COUNT(*) FROM Users WHERE username = $1 AND password = $2", username, password)
+		row.Scan(&isEx)
+
+		if isEx == 0 {
+			http.Error(w, "Wrong Username or Password", http.StatusUnauthorized)
+			return
+		}
+		userid := DB.QueryRow("SELECT uid from Users WHERE username = ?", username)
+		var uid int
+		userid.Scan(&uid)
+		session, _ := store.Get(r, "user-session")
+		session.Values["authenticated"] = true
+		session.Values["user-id"] = uid
+		session.Values["username"] = username
+
+		err = session.Save(r, w)
+		if err != nil {
+			http.Error(w, "Cannot save session", http.StatusInternalServerError)
+			return
+		}
+
+		user := User{
+			Auth:     true,
+			Username: username,
+			Password: "",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(user)
+	}
+}
+
+func RegPage(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	var uid int
-	err := DB.QueryRow("SELECT id FROM users WHERE username=$1 AND password=$2", username, password).Scan(&uid)
+	var IsEx int
+	err := DB.QueryRow("SELECT COUNT(*) FROM users WHERE username = $1", username).Scan(&IsEx)
+
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return
-		}
+		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if IsEx > 0 {
+		http.Error(w, "This username already exists", http.StatusBadRequest)
+		return
+	}
+
+	_, err = DB.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, password)
+	if err != nil {
 		log.Println("DB error:", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	session, _ := store.Get(r, "user-session")
-	session.Values["authenticated"] = true
-	session.Values["user-id"] = uid
-	session.Values["username"] = username
-
-	err = session.Save(r, w)
-	if err != nil {
-		http.Error(w, "Cannot save session", http.StatusInternalServerError)
-		return
-	}
-
-	user := User{
-		Auth:     true,
-		Username: username,
-		Password: "",
-	}
-
+	regdone := map[string]bool{"success": true}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(regdone)
 }
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
@@ -78,5 +110,6 @@ func main() {
 	}
 	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/login", LoginPage)
+	http.HandleFunc("/register", RegPage)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
