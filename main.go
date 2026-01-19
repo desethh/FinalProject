@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -21,8 +22,15 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type Status struct {
+	status bool
+}
+
 func LoginPage(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	if r.Method != http.MethodPost {
+		http.Error(w, "404 Not Found", http.StatusNotFound)
+		return
+	} else {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
@@ -32,6 +40,8 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 
 		if isEx == 0 {
 			http.Error(w, "Wrong Username or Password", http.StatusUnauthorized)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(User{Auth: false})
 			return
 		}
 		userid := DB.QueryRow("SELECT uid from Users WHERE username = ?", username)
@@ -112,4 +122,5 @@ func main() {
 	http.HandleFunc("/login", LoginPage)
 	http.HandleFunc("/register", RegPage)
 	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server Listen and Server on port :8080")
 }

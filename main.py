@@ -13,14 +13,14 @@ def login():
             "username": request.form["username"],
             "password": request.form["password"]
         }
-
+        
         r = requests.post(f"{GO_BACKEND}/login", data=data)
-
-        if r.status_code == 200:
+        resp = r.json()
+        if not resp["Auth"]:    
+            return """<h1>Wrong Username or Password</h1>"""
+        else:
             session["auth"] = True
             return redirect("/")
-        else:
-            return "Login failed", 401
 
     return render_template("login.html")
 
@@ -37,14 +37,13 @@ def register():
                 return redirect("/login")
         else:
             return "Registration failed", 400
-    return render_template("register.html")
+    return render_template("login.html")
 
 @app.route("/")
 def index():
     if not session.get("auth"):
         return redirect("/login")
-
-    return "<h1>Welcome to collaborative board</h1>"
+    return render_template("main.html")
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
