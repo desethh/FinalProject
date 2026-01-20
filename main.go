@@ -26,11 +26,29 @@ type Status struct {
 	status bool
 }
 
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	session, ok := store.Get(r, "user-session")
+	if ok != nil {
+		http.Error(w, "No sessesion found", http.StatusBadRequest)
+	}
+	username := session.Values["username"].(string)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"username": username,
+	})
+}
+
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "404 Not Found", http.StatusNotFound)
 		return
 	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "auth",
+			Value:    "true",
+			Path:     "/",
+			HttpOnly: true,
+		})
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
@@ -59,9 +77,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		user := User{
-			Auth:     true,
-			Username: username,
-			Password: "",
+			Auth: true,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -97,17 +113,6 @@ func RegPage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(regdone)
 }
 
-func mainPage(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "user-session")
-	auth, ok := session.Values["authenticated"].(bool)
-	if !ok || !auth {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-	w.Write([]byte("Main Page Accessed"))
-
-}
-
 func main() {
 	dsn := "postgresql://postgres.dwbaizkhsefnvtxfjtlw:xExWqy5wQTcH4tX8@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
 	DB, err = sql.Open("postgres", dsn)
@@ -118,9 +123,9 @@ func main() {
 	if err := DB.Ping(); err != nil {
 		log.Fatal("Ошибка подключения к БД:", err)
 	}
-	http.HandleFunc("/", mainPage)
 	http.HandleFunc("/login", LoginPage)
 	http.HandleFunc("/register", RegPage)
+	http.HandleFunc("/user", GetUser)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 	fmt.Println("Server Listen and Server on port :8080")
 }
