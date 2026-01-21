@@ -16,6 +16,7 @@ body {
       url("img/bg.jpg") center / cover no-repeat;
 }
 
+
 .navbar-nav .nav-link {
     font-size: 1.4rem;
     font-weight: 500;
@@ -25,17 +26,36 @@ body {
     gap: 10px;
 }
 
-.user-avatar {
-    width: 42px;
-    height: 42px;
+.avatar-link {
+    position: relative;
+    display: inline-block;
     border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
 }
 
-.avatar-link:hover .user-avatar {
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
+/* Затемнение */
+.avatar-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Наведение — только затемнение */
+.avatar-link:hover::after {
+    opacity: 1;
+}
+
+
+
+/* Аватар */
+.user-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .user-name {
@@ -81,3 +101,5 @@ body {
     user-select: none;
     pointer-events: none;   /* тоже некликабельное */
 }
+
+
