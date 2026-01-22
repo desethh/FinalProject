@@ -13,38 +13,30 @@ def login():
             "username": request.form["username"],
             "password": request.form["password"]
         }
-
+        
         r = requests.post(f"{GO_BACKEND}/login", data=data)
 
-        if r.status_code == 200:
-            session["auth"] = True
-            return redirect("/")
-        else:
-            return "Login failed", 401
+        if not r.ok:
+            return "<h1>Wrong Username or Password</h1>"
+
+        resp = r.json()
+        if not resp["auth"]:
+            return "<h1>Wrong Username or Password</h1>"
+
+        for cookie in r.cookies:
+            session[cookie.name] = cookie.value
+
+        session["Auth"] = True
+        return redirect("/")
 
     return render_template("login.html")
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    data = {
-        isdone: request.form["isdone"],
-    }
-    if request.method == "POST":
-        r = requests.post(f"{GO_BACKEND}/register", data=data)
-        if r.status_code == 200:
-            auth = r.json()
-            if auth == True:
-                return redirect("/login")
-        else:
-            return "Registration failed", 400
-    return render_template("register.html")
-
 @app.route("/")
 def index():
-    if not session.get("auth"):
+    if not session.get("Auth"):
         return redirect("/login")
+    return render_template("main.html")
 
-    return "<h1>Welcome to collaborative board</h1>"
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
