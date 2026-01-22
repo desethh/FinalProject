@@ -47,6 +47,7 @@ body {
     font-weight: bold;
 }
 
+
 .navbar-nav .nav-link {
     font-size: 1.4rem; /* увеличиваем размер текста (по вкусу можно 1.3, 1.4) */
     font-weight: 500;  /* чуть жирнее, чтобы выглядело лучше */
