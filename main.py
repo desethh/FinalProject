@@ -1,4 +1,4 @@
-from flask import Flask, request, session, Response, redirect
+from flask import Flask, request, session, Response, redirect, render_template
 import requests
 
 app = Flask(__name__)
@@ -53,5 +53,36 @@ def login():
 
         # После успешного логина редирект на страницу Go
         return redirect("/")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
+@app.route("/create-room", methods=["POST"])
+def create_room():
+    if not session.get("auth"):
+        return redirect("/login")
+
+    headers = {
+        "X-Username": session["username"]
+    }
+
+    r = requests.post(f"{GO_BACKEND}/create-room", headers=headers)
+    room_id = r.text
+
+    return redirect(f"/room/{room_id}")
+
+@app.route("/room/<room_id>")
+def room(room_id):
+    if not session.get("auth"):
+        return redirect("/login")
+
+    return render_template(
+        "room.html",
+        username=session["username"],
+        room_id=room_id
+    )
+
 
 app.run(port=5000, debug=True)
