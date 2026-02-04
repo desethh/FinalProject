@@ -9,25 +9,75 @@
 <ul id="chat"></ul>
 
 <input id="msg" placeholder="Message">
-<button onclick="send()">Send</button>
+<button type="button" onclick="send()">Send</button>
+
 
 <script>
-    const ws = new WebSocket(
-        "ws://localhost:8080/ws?room={{ room_id }}"
+  const roomId = "{{ room_id }}";
+  const username = "{{ username }}";
+  const chat = document.getElementById("chat");
+
+  function addLine(user, text) {
+    const li = document.createElement("li");
+    li.textContent = `${user}: ${text}`;
+    chat.appendChild(li);
+  }
+
+  let ws = null;
+  let reconnectTimer = null;
+
+  function connectWS() {
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
+    ws = new WebSocket(
+      `ws://localhost:8080/ws?room=${roomId}&username=${encodeURIComponent(username)}`
     );
 
     ws.onmessage = (e) => {
-        console.log("RAW:", e.data, typeof e.data);
+      const msg = JSON.parse(e.data);
+      addLine(msg.user, msg.text);
     };
 
+    ws.onclose = () => {
+      if (reconnectTimer) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connectWS();
+      }, 1000);
+    };
+  }
 
+  async function loadHistory() {
+    chat.innerHTML = "";
 
+    const res = await fetch(`/messages/${roomId}`);
+    const list = await res.json();
 
-    function send() {
-        const input = document.getElementById("msg");
-        ws.send(input.value);
-        input.value = "";
-    }
+    list.forEach(m => addLine(m.user, m.text));
+  }
+
+  loadHistory()
+    .catch(err => console.log("history error:", err))
+    .finally(() => {
+      connectWS();
+    });
+
+  function send() {
+    const input = document.getElementById("msg");
+    const text = input.value.trim();
+    if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+    ws.send(text);
+    input.value = "";
+  }
+  window.addEventListener("beforeunload", () => {
+    if (ws) ws.close();
+  });
 </script>
+
+
+
 </body>
 </html>

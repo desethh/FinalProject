@@ -38,18 +38,14 @@
             </form>
 
             <!-- Register Form -->
-            <form id="register-form" class="auth-form" action="/register">
+            <form id="register-form" class="auth-form" action="/register" method="post">
                 <div class="mb-3">
                     <label for="reg-username" class="form-label text-light">Username</label>
-                    <input type="text" class="form-control bg-secondary text-light border-0" id="reg-username" placeholder="Enter username">
+                    <input name="username" type="text" class="form-control bg-secondary text-light border-0" id="reg-username" placeholder="Enter username">
                 </div>
                 <div class="mb-3">
                     <label for="reg-password" class="form-label text-light">Password</label>
-                    <input type="password" class="form-control bg-secondary text-light border-0" id="reg-password" placeholder="Enter password">
-                </div>
-                <div class="mb-3">
-                    <label for="reg-confirm-password" class="form-label text-light">Confirm Password</label>
-                    <input type="password" class="form-control bg-secondary text-light border-0" id="reg-confirm-password" placeholder="Confirm password">
+                    <input name="password" type="password" class="form-control bg-secondary text-light border-0" id="reg-password" placeholder="Enter password">
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Register</button>
             </form>

@@ -35,7 +35,6 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        # Просто проксируем страницу логина от Go
         r = requests.get(f"{GO_BACKEND}/login")
         return Response(
             r.content,
@@ -44,20 +43,46 @@ def login():
         )
 
     if request.method == "POST":
-        # Получаем данные из формы
         username = request.form.get("username")
+        password = request.form.get("password")
 
-        # Сохраняем сессию в Flask
+        data = {
+            "username": username,
+            "password": password
+        }
+        r = requests.post(f"{GO_BACKEND}/login", data=data)
+
+        if r.status_code != 303 and r.status_code != 200:
+            return Response(
+                r.content,
+                status=r.status_code,
+                content_type=r.headers.get("Content-Type")
+            )
+
         session["auth"] = True
         session["username"] = username
 
-        # После успешного логина редирект на страницу Go
         return redirect("/")
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/login")
+
+@app.route("/messages/<room_id>", methods=["GET"])
+def messages(room_id):
+    r = requests.get(f"{GO_BACKEND}/messages", params={"room": room_id})
+    return Response(r.content, status=r.status_code, content_type="application/json")
+
+
+@app.route("/rooms", methods=["GET"])
+def rooms():
+    r = requests.get(f"{GO_BACKEND}/rooms")
+    return Response(
+        r.content,
+        status=r.status_code,
+        content_type="text/html"
+    )
 
 @app.route("/create-room", methods=["POST"])
 def create_room():
@@ -69,9 +94,10 @@ def create_room():
     }
 
     r = requests.post(f"{GO_BACKEND}/create-room", headers=headers)
-    room_id = r.text
-
+    room_id = r.text.strip()
     return redirect(f"/room/{room_id}")
+
+
 
 @app.route("/room/<room_id>")
 def room(room_id):
@@ -83,6 +109,35 @@ def room(room_id):
         username=session["username"],
         room_id=room_id
     )
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "GET":
+        r = requests.get(f"{GO_BACKEND}/login")
+        return Response(
+            r.content,
+            status=r.status_code,
+            content_type=r.headers.get("Content-Type")
+        )
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        data = {
+            "username": username,
+            "password": password
+        }
+        r = requests.post(f"{GO_BACKEND}/register", data=data)
+
+        if r.status_code == 200:
+            return redirect("/login")
+        else:
+            return Response(
+                r.content,
+                status=r.status_code,
+                content_type=r.headers.get("Content-Type")
+            )
 
 
 app.run(port=5000, debug=True)
