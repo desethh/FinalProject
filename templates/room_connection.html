@@ -10,6 +10,11 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style_room_connection.css">
+    <style>
+      body {
+        background-color: grey;
+      }
+    </style>
 </head>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -34,18 +39,19 @@
 <h2 class="text-center text-white my-4">
   Available Servers
 </h2>
-
-<a href="room.html" class="text-decoration-none d-block">
-  <div class="card room-card mb-3">
-    <div class="card-body d-flex align-items-center">
-      <p class="card-text text-white mb-0">Server name to connect</p>
-
-      <span class="user-count text-white ms-auto">
-        <span id="current-users">0</span>/<span id="max-users">5</span>
-      </span>
+{{ range . }}
+  <a href="/room/{{ .ID }}" class="text-decoration-none d-block">
+    <div class="card room-card mb-3" style="background-color: black;">
+      <div class="card-body d-flex align-items-center">
+        <p class="card-text text-white mb-0">{{ .ID }}</p>
+        <p class="card-text text-white mb-0">{{ .Owner }}</p>
+        <span class="user-count text-white ms-auto">
+          <span id="current-users">0</span>/<span id="max-users">5</span>
+        </span>
+      </div>
     </div>
-  </div>
-</a>
+  </a>
+{{ end }}
 
 <div id="server-list" class="container my-4">
   <!-- Здесь будут динамически добавляться серверные карточки -->
