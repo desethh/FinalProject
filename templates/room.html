@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Room</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/static/style_room.css">
 
@@ -23,13 +22,14 @@
     /* CHAT */
     .chat {
       width: 20%;
-      background: #fff;
+      background: #2c2c2c; /* мягкий темно-серый */
+      color: #fff;
       border-radius: 10px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .chat-header { padding: 10px; border-bottom: 1px solid #ccc; font-weight: bold; }
+    .chat-header { padding: 10px; border-bottom: 1px solid #555; font-weight: bold; }
     #chat {
       flex: 1;
       overflow-y: auto;
@@ -40,37 +40,48 @@
     .chat-input {
       display: flex;
       padding: 10px;
-      border-top: 1px solid #ccc;
+      border-top: 1px solid #555;
       gap: 5px;
     }
+    .chat-input input {
+      background: #2c2c2c;
+      color: #fff;
+      border: 1px solid #666;
+    }
+    .chat-input input::placeholder { color: #ccc; }
 
     /* WHITEBOARD */
     .board {
       flex: 1;
-      background: #fff;
+      background: #2c2c2c; /* мягкий темно-серый */
       border-radius: 10px;
       display: flex;
       flex-direction: column;
       padding: 10px;
+      color: #fff;
     }
-    .tools { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
-    canvas { flex: 1; border: 1px solid #ccc; border-radius: 8px; background: white; touch-action: none; }
+    .tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      color: #fff; /* текст белый */
+    }
+    .tools input { margin-left: 5px; }
+    canvas {
+      flex: 1;
+      border: 1px solid #555;
+      border-radius: 8px;
+      background: #fff;
+      touch-action: none;
+    }
 
-    /* Адаптивность: мобильные экраны */
+    /* Адаптивность */
     @media (max-width: 767px) {
-      .wrap {
-        flex-direction: column;
-        height: auto;
-      }
-      .chat {
-        width: 100%;
-        height: 250px; /* фиксированная высота чата */
-        margin-bottom: 12px;
-      }
-      .board {
-        width: 100%;
-        height: calc(100vh - 250px - 36px); /* остальная высота экрана */
-      }
+      .wrap { flex-direction: column; height: auto; }
+      .chat { width: 100%; height: 250px; margin-bottom: 12px; }
+      .board { width: 100%; height: calc(100vh - 250px - 36px); }
     }
   </style>
 </head>
@@ -78,16 +89,14 @@
 
 <div class="wrap">
   <!-- CHAT -->
-<!-- CHAT -->
-<div class="chat bg-dark text-white">
-  <div class="chat-header border-bottom border-secondary">Room: {{ room_id }}</div>
-  <ul id="chat" class="flex-grow-1 overflow-auto list-unstyled p-2 mb-0"></ul>
-  <div class="chat-input mt-auto d-flex gap-2 p-2">
-    <input id="msg" class="form-control bg-dark text-white border-secondary" placeholder="Type a message..." />
-    <button type="button" class="btn btn-light" onclick="sendChat()">Send</button>
+  <div class="chat">
+    <div class="chat-header">Room: {{ room_id }}</div>
+    <ul id="chat" class="flex-grow-1 overflow-auto list-unstyled p-2 mb-0"></ul>
+    <div class="chat-input mt-auto d-flex gap-2">
+      <input id="msg" class="form-control" placeholder="Type a message..." />
+      <button type="button" class="btn btn-light" onclick="sendChat()">Send</button>
+    </div>
   </div>
-</div>
-
 
   <!-- WHITEBOARD -->
   <div class="board">
@@ -95,14 +104,13 @@
       <b>Whiteboard</b>
       <label class="mb-0">Size <input id="penSize" type="range" min="1" max="12" value="3"></label>
       <label class="mb-0">Color <input id="penColor" type="color" value="#000000"></label>
-      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearLocal()">Clear</button>
+      <button type="button" class="btn btn-outline-light btn-sm" onclick="clearLocal()">Clear</button>
     </div>
     <canvas id="wb"></canvas>
   </div>
 </div>
 
 <script>
-  // --- CHAT ---
   const roomId = "{{ room_id }}";
   const username = "{{ username }}";
   const chat = document.getElementById("chat");
@@ -152,13 +160,9 @@
   }
 
   document.getElementById("msg").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      sendChat();
-    }
+    if (e.key === "Enter") { e.preventDefault(); sendChat(); }
   });
 
-  // --- WHITEBOARD ---
   const canvas = document.getElementById("wb");
   const ctx = canvas.getContext("2d");
 
