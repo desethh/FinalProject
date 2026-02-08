@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: appdb
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.py
+    environment:
+      GO_BACKEND: http://backend:8080
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
