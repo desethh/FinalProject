@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"database/sql"
@@ -15,6 +16,25 @@ import (
 	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
 )
+
+var roomsWatchers = struct {
+	mu    sync.Mutex
+	conns map[*websocket.Conn]bool
+}{conns: make(map[*websocket.Conn]bool)}
+
+const MaxClientsPerRoom = 5
+
+type WSIn struct {
+	Type string `json:"type"`
+	Text string `json:"text,omitempty"`
+
+	X0    float64 `json:"x0,omitempty"`
+	Y0    float64 `json:"y0,omitempty"`
+	X1    float64 `json:"x1,omitempty"`
+	Y1    float64 `json:"y1,omitempty"`
+	Color string  `json:"color,omitempty"`
+	Size  float64 `json:"size,omitempty"`
+}
 
 type PageData struct {
 	Username string
@@ -31,12 +51,25 @@ type Room struct {
 	Owner    string
 	Clients  map[*Client]bool
 	Messages []Message
+
+	Mu sync.Mutex
 }
 
 type Message struct {
-	User string `json:"user"`
-	Text string `json:"text"`
-	Time string `json:"time"`
+	Type string `json:"type"`
+	User string `json:"user,omitempty"`
+	Text string `json:"text,omitempty"`
+	Time string `json:"time,omitempty"`
+
+	Current int            `json:"current,omitempty"`
+	Max     int            `json:"max,omitempty"`
+	Rooms   map[string]int `json:"rooms,omitempty"`
+	X0      float64        `json:"x0,omitempty"`
+	Y0      float64        `json:"y0,omitempty"`
+	X1      float64        `json:"x1,omitempty"`
+	Y1      float64        `json:"y1,omitempty"`
+	Color   string         `json:"color,omitempty"`
+	Size    float64        `json:"size,omitempty"`
 }
 
 var rooms = make(map[string]*Room)
@@ -44,6 +77,48 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+}
+
+func broadcastRoomsUsers() {
+	snapshot := map[string]int{}
+
+	for id, room := range rooms {
+		room.Mu.Lock()
+		snapshot[id] = len(room.Clients)
+		room.Mu.Unlock()
+	}
+
+	msg := Message{
+		Type:  "rooms_users",
+		Max:   MaxClientsPerRoom,
+		Rooms: snapshot,
+	}
+
+	roomsWatchers.mu.Lock()
+	defer roomsWatchers.mu.Unlock()
+
+	for c := range roomsWatchers.conns {
+		if err := c.WriteJSON(msg); err != nil {
+			delete(roomsWatchers.conns, c)
+			_ = c.Close()
+		}
+	}
+}
+
+func broadcastUsersCount(room *Room) {
+	room.Mu.Lock()
+	count := len(room.Clients)
+	room.Mu.Unlock()
+
+	msg := Message{
+		Type:    "users",
+		Current: count,
+		Max:     MaxClientsPerRoom,
+	}
+
+	for c := range room.Clients {
+		_ = c.Conn.WriteJSON(msg)
+	}
 }
 
 func main() {
@@ -140,6 +215,8 @@ func main() {
 		}
 
 	})
+
+	// MESSAGES
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -178,6 +255,7 @@ func main() {
 		json.NewEncoder(w).Encode(msgs)
 	})
 
+	// ROOM CREATE
 	http.HandleFunc("/create-room", func(w http.ResponseWriter, r *http.Request) {
 		username := r.Header.Get("X-Username")
 		if username == "" {
@@ -199,6 +277,62 @@ func main() {
 		}
 		w.Write([]byte(roomID))
 	})
+	http.HandleFunc("/ws-rooms", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+
+		roomsWatchers.mu.Lock()
+		roomsWatchers.conns[conn] = true
+		roomsWatchers.mu.Unlock()
+
+		// сразу отправим snapshot при подключении
+		broadcastRoomsUsers()
+
+		// держим соединение открытым
+		for {
+			if _, _, err := conn.ReadMessage(); err != nil {
+				roomsWatchers.mu.Lock()
+				delete(roomsWatchers.conns, conn)
+				roomsWatchers.mu.Unlock()
+				_ = conn.Close()
+				break
+			}
+		}
+	})
+
+	http.HandleFunc("/rooms-stats", func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.Query("SELECT room_id FROM Rooms")
+		if err != nil {
+			http.Error(w, "db error", 500)
+			return
+		}
+		defer rows.Close()
+
+		stats := map[string]int{}
+
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err != nil {
+				http.Error(w, "scan error", 500)
+				return
+			}
+			if rm, ok := rooms[id]; ok && rm != nil {
+				stats[id] = len(rm.Clients)
+			} else {
+				stats[id] = 0
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"max":   MaxClientsPerRoom,
+			"rooms": stats,
+		})
+	})
+
+	// WEB SOCKET
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		roomID := r.URL.Query().Get("room")
 		username := r.URL.Query().Get("username")
@@ -229,57 +363,95 @@ func main() {
 			Conn:     conn,
 		}
 
+		room.Mu.Lock()
 		room.Clients[client] = true
+		if len(room.Clients) >= MaxClientsPerRoom {
+			room.Mu.Unlock()
+			_ = conn.WriteMessage(websocket.TextMessage, []byte("Room is full (max 5)"))
+			_ = conn.Close()
+			return
+		}
+		room.Mu.Unlock()
+
+		broadcastUsersCount(room)
+		broadcastRoomsUsers()
 
 		for {
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
+				room.Mu.Lock()
 				delete(room.Clients, client)
-				conn.Close()
+				room.Mu.Unlock()
+
+				broadcastUsersCount(room)
+				broadcastRoomsUsers()
 				break
 			}
-			text := string(msg)
-			if strings.HasPrefix(text, "/gpt ") {
-				prompt := strings.TrimSpace(strings.TrimPrefix(`
-				Answer in Markdown.
-				Use headings, bullet points, and code blocks where appropriate.
 
-				Question:
-				`+text, "/gpt "))
-				ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
-				answer, gerr := CallGPT(ctx, prompt)
-				cancel()
+			var in WSIn
+			if err := json.Unmarshal(msg, &in); err != nil {
+				in = WSIn{Type: "chat", Text: string(msg)}
+			}
 
-				if gerr != nil {
-					answer = "Ошибка GPT: " + gerr.Error()
+			switch in.Type {
+			case "chat":
+				text := strings.TrimSpace(in.Text)
+
+				if strings.HasPrefix(text, "/gpt ") {
+					prompt := strings.TrimSpace(strings.TrimPrefix(text, "/gpt "))
+
+					answer, err := CallGPT(ctx, prompt)
+					if err != nil {
+						answer = "Ошибка GPT: " + err.Error()
+					}
+
+					gptMsg := Message{
+						Type: "chat",
+						User: "GPT",
+						Text: answer,
+						Time: time.Now().Format("15:04:05"),
+					}
+
+					_, _ = db.Exec(
+						`INSERT INTO messages (room_id, username, text) VALUES ($1, $2, $3)`,
+						roomID, gptMsg.User, gptMsg.Text,
+					)
+
+					for c := range room.Clients {
+						_ = c.Conn.WriteJSON(gptMsg)
+					}
+
+					continue
 				}
 
-				aiMsg := Message{User: "GPT", Text: answer}
+				chatMsg := Message{
+					Type: "chat",
+					User: username,
+					Text: text,
+					Time: time.Now().Format("15:04:05"),
+				}
 
-				if _, err := db.Exec(
+				_, _ = db.Exec(
 					`INSERT INTO messages (room_id, username, text) VALUES ($1, $2, $3)`,
-					roomID, aiMsg.User, aiMsg.Text,
-				); err != nil {
-					log.Println("insert ai message error:", err)
+					roomID, chatMsg.User, chatMsg.Text,
+				)
+
+				for c := range room.Clients {
+					_ = c.Conn.WriteJSON(chatMsg)
+				}
+
+			case "draw":
+				drawMsg := Message{
+					Type: "draw",
+					X0:   in.X0, Y0: in.Y0,
+					X1: in.X1, Y1: in.Y1,
+					Color: in.Color,
+					Size:  in.Size,
 				}
 
 				for c := range room.Clients {
-					_ = c.Conn.WriteJSON(aiMsg)
+					_ = c.Conn.WriteJSON(drawMsg)
 				}
-
-				continue
-			}
-			_, err = db.Exec("INSERT INTO messages (room_id, username, text) VALUES ($1, $2, $3)", roomID, username, string(msg))
-			if err != nil {
-				log.Println("Database error:", err)
-			}
-			message := Message{
-				User: username,
-				Text: text,
-			}
-
-			for c := range room.Clients {
-				c.Conn.WriteJSON(message)
 			}
 
 		}

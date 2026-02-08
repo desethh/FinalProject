@@ -1,7 +1,7 @@
 from flask import Flask, request, session, Response, redirect, render_template
 import requests
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 app.secret_key = "secret"
 
 GO_BACKEND = "http://localhost:8080"
@@ -138,6 +138,10 @@ def register():
                 status=r.status_code,
                 content_type=r.headers.get("Content-Type")
             )
+@app.route("/rooms-stats", methods=["GET"])
+def rooms_stats():
+    r = requests.get(f"{GO_BACKEND}/rooms-stats")
+    return Response(r.content, status=r.status_code, content_type="application/json")
 
 
 app.run(port=5000, debug=True)

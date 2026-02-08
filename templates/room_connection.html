@@ -24,7 +24,7 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
             <ul class="navbar-nav">
-                <a class="nav-link" href="main.html" role="button">
+                <a class="nav-link" href="http://localhost:5000/" role="button">
                   Menu
                 </a>
             </ul>
@@ -43,10 +43,10 @@
   <a href="/room/{{ .ID }}" class="text-decoration-none d-block">
     <div class="card room-card mb-3" style="background-color: black;">
       <div class="card-body d-flex align-items-center">
-        <p class="card-text text-white mb-0">{{ .ID }}</p>
+        <p class="card-text text-white mb-0">Room: </p>
         <p class="card-text text-white mb-0">{{ .Owner }}</p>
         <span class="user-count text-white ms-auto">
-          <span id="current-users">0</span>/<span id="max-users">5</span>
+          <span class="current-users" data-room-id="{{ .ID }}">0</span>/<span class="max-users">5</span>
         </span>
       </div>
     </div>
@@ -54,9 +54,32 @@
 {{ end }}
 
 <div id="server-list" class="container my-4">
-  <!-- Здесь будут динамически добавляться серверные карточки -->
 </div>
 
+<script>
+async function updateCounts() {
+  try {
+    const res = await fetch("/rooms-stats");
+    const data = await res.json();
+
+    // max одинаковый для всех карточек
+    document.querySelectorAll(".max-users").forEach(el => {
+      el.textContent = data.max;
+    });
+
+    // current по room id
+    for (const [roomId, count] of Object.entries(data.rooms)) {
+      const el = document.querySelector(`.current-users[data-room-id="${roomId}"]`);
+      if (el) el.textContent = count;
+    }
+  } catch (e) {
+    console.log("rooms-stats error:", e);
+  }
+}
+
+updateCounts();
+setInterval(updateCounts, 1000);
+</script>
 
 
 </body>

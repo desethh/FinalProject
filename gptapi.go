@@ -10,7 +10,7 @@ import (
 var geminiClient *genai.Client
 
 func InitGemini(ctx context.Context) error {
-	apiKey := "AIzaSyCcmTTAxLNuZaYb9y81zFTQmsFg37rkgZo"
+	apiKey := "AIzaSyDOF70e3Xd-Sbm20Ljm4H9F9kRJ92CAeak"
 	if apiKey == "" {
 		return errors.New("GEMINI_API_KEY is empty")
 	}
