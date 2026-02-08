@@ -1,0 +1,113 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+}
+
+body {
+    background:
+      linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+      url("img/bg.jpg") center / cover no-repeat;
+}
+
+/* Черный чат */
+.chat {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Скролл сообщений */
+#chat {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Сообщения */
+#chat li {
+  margin-bottom: 6px;
+}
+
+/* Черный чат */
+.chat {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Скролл сообщений */
+#chat {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Сообщения */
+#chat li {
+  margin-bottom: 6px;
+}
+
+/* Чат */
+.chat {
+  width: 320px;
+  background: #1a1a1a; /* темно-серый фон, как у Discord */
+  color: #fff;          /* белый текст */
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat ul {
+  flex: 1;
+  overflow: auto;
+  padding-left: 18px;
+  list-style-type: none;
+}
+
+.chat input,
+.chat button {
+  margin: 2px 0;
+}
+
+/* Доска */
+.board {
+  flex: 1;
+  background: #1a1a1a; /* такой же темный фон, как у чата */
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #1a1a1a; /* рамка совпадает с фоном */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+canvas {
+  flex: 1;
+  border: 2px solid #333; /* чуть светлее для рамки */
+  border-radius: 8px;
+  background: #fff; /* остаётся белым, чтобы рисовать было видно */
+  touch-action: none;
+}
+
+/* Placeholder текст для чата */
+#msg::placeholder {
+  color: #ccc;
+}
+
+.tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #fff; /* делаем текст белым */
+}

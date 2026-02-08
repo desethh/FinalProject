@@ -1,47 +1,108 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Room</title>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style_room.css">
+
   <style>
     body { margin: 0; font-family: Arial, sans-serif; background: #eee; }
-    .wrap { display: flex; height: 100vh; gap: 12px; padding: 12px; box-sizing: border-box; }
-    .chat { width: 320px; background: #fff; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; }
-    #chat { flex: 1; overflow: auto; padding-left: 18px; }
-    .row { display: flex; gap: 8px; }
-    #msg { flex: 1; }
-    .board { flex: 1; background: #fff; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; }
-    .tools { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+
+    /* Основной контейнер */
+    .wrap {
+      display: flex;
+      height: 100vh;
+      gap: 12px;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    /* CHAT */
+    .chat {
+      width: 20%;
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header { padding: 10px; border-bottom: 1px solid #ccc; font-weight: bold; }
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      list-style: none;
+      margin: 0;
+    }
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      gap: 5px;
+    }
+
+    /* WHITEBOARD */
+    .board {
+      flex: 1;
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    .tools { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
     canvas { flex: 1; border: 1px solid #ccc; border-radius: 8px; background: white; touch-action: none; }
+
+    /* Адаптивность: мобильные экраны */
+    @media (max-width: 767px) {
+      .wrap {
+        flex-direction: column;
+        height: auto;
+      }
+      .chat {
+        width: 100%;
+        height: 250px; /* фиксированная высота чата */
+        margin-bottom: 12px;
+      }
+      .board {
+        width: 100%;
+        height: calc(100vh - 250px - 36px); /* остальная высота экрана */
+      }
+    }
   </style>
 </head>
 <body>
 
 <div class="wrap">
   <!-- CHAT -->
-  <div class="chat">
-    <h3 style="margin:0 0 8px 0;">Room: {{ room_id }}</h3>
-    <ul id="chat"></ul>
-
-    <div class="row">
-      <input id="msg" placeholder="Message" />
-      <button type="button" onclick="sendChat()">Send</button>
-    </div>
+<!-- CHAT -->
+<div class="chat bg-dark text-white">
+  <div class="chat-header border-bottom border-secondary">Room: {{ room_id }}</div>
+  <ul id="chat" class="flex-grow-1 overflow-auto list-unstyled p-2 mb-0"></ul>
+  <div class="chat-input mt-auto d-flex gap-2 p-2">
+    <input id="msg" class="form-control bg-dark text-white border-secondary" placeholder="Type a message..." />
+    <button type="button" class="btn btn-light" onclick="sendChat()">Send</button>
   </div>
+</div>
+
 
   <!-- WHITEBOARD -->
   <div class="board">
     <div class="tools">
       <b>Whiteboard</b>
-      <label>Size <input id="penSize" type="range" min="1" max="12" value="3"></label>
-      <label>Color <input id="penColor" type="color" value="#000000"></label>
-      <button type="button" onclick="clearLocal()">Clear (local)</button>
+      <label class="mb-0">Size <input id="penSize" type="range" min="1" max="12" value="3"></label>
+      <label class="mb-0">Color <input id="penColor" type="color" value="#000000"></label>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearLocal()">Clear</button>
     </div>
     <canvas id="wb"></canvas>
   </div>
 </div>
 
 <script>
+  // --- CHAT ---
   const roomId = "{{ room_id }}";
   const username = "{{ username }}";
   const chat = document.getElementById("chat");
@@ -53,7 +114,6 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  // --- WS connect ---
   let ws = null;
   let reconnectTimer = null;
 
@@ -64,24 +124,13 @@
 
     ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
-
-      if (msg.type === "chat") {
-        addLine(msg.user, msg.text);
-        return;
-      }
-
-      if (msg.type === "draw") {
-        drawLine(msg.x0, msg.y0, msg.x1, msg.y1, msg.color, msg.size);
-        return;
-      }
+      if (msg.type === "chat") addLine(msg.user, msg.text);
+      if (msg.type === "draw") drawLine(msg.x0, msg.y0, msg.x1, msg.y1, msg.color, msg.size);
     };
 
     ws.onclose = () => {
       if (reconnectTimer) return;
-      reconnectTimer = setTimeout(() => {
-        reconnectTimer = null;
-        connectWS();
-      }, 1000);
+      reconnectTimer = setTimeout(() => { reconnectTimer = null; connectWS(); }, 1000);
     };
   }
 
@@ -92,18 +141,22 @@
     list.forEach(m => addLine(m.user, m.text));
   }
 
-  loadHistory()
-    .catch(err => console.log("history error:", err))
-    .finally(() => connectWS());
+  loadHistory().catch(console.log).finally(connectWS);
 
   function sendChat() {
     const input = document.getElementById("msg");
     const text = input.value.trim();
     if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-
     ws.send(JSON.stringify({ type: "chat", text }));
     input.value = "";
   }
+
+  document.getElementById("msg").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendChat();
+    }
+  });
 
   // --- WHITEBOARD ---
   const canvas = document.getElementById("wb");
@@ -114,7 +167,7 @@
     const ratio = window.devicePixelRatio || 1;
     canvas.width = Math.floor(rect.width * ratio);
     canvas.height = Math.floor(rect.height * ratio);
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0); // рисуем в CSS-пикселях
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
   window.addEventListener("resize", resizeCanvas);
@@ -144,51 +197,30 @@
   let drawing = false;
   let last = null;
 
-  function startDraw(e) {
-    drawing = true;
-    last = getPos(e);
-    e.preventDefault();
-  }
-
+  function startDraw(e) { drawing = true; last = getPos(e); e.preventDefault(); }
   function moveDraw(e) {
     if (!drawing) return;
     const cur = getPos(e);
-
     const color = document.getElementById("penColor").value;
     const size = Number(document.getElementById("penSize").value);
-
-    // рисуем локально
     drawLine(last.x, last.y, cur.x, cur.y, color, size);
-
-    // отправляем всем
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: "draw",
-        x0: last.x, y0: last.y,
-        x1: cur.x,  y1: cur.y,
-        color, size
-      }));
+      ws.send(JSON.stringify({ type: "draw", x0: last.x, y0: last.y, x1: cur.x, y1: cur.y, color, size }));
     }
-
     last = cur;
     e.preventDefault();
   }
-
-  function endDraw(e) {
-    drawing = false;
-    last = null;
-    e.preventDefault();
-  }
+  function endDraw(e) { drawing = false; last = null; e.preventDefault(); }
 
   canvas.addEventListener("mousedown", startDraw);
   canvas.addEventListener("mousemove", moveDraw);
   window.addEventListener("mouseup", endDraw);
-
   canvas.addEventListener("touchstart", startDraw, { passive: false });
   canvas.addEventListener("touchmove", moveDraw, { passive: false });
   window.addEventListener("touchend", endDraw);
 
   window.addEventListener("beforeunload", () => { if (ws) ws.close(); });
 </script>
+
 </body>
 </html>

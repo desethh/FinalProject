@@ -54,3 +54,92 @@ body {
 .dropdown-menu .dropdown-item {
     font-size: 1.2rem; /* размер текста в пунктах меню */
 }
+
+.card button {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.card button:hover,
+.card button:focus,
+.card button:active {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.card button {
+  background-color: transparent !important; /* прозрачный фон */
+  color: white !important;                  /* текст белый */
+  border: none !important;                  /* убираем рамку */
+}
+
+.card button:hover,
+.card button:focus,
+.card button:active {
+  background-color: transparent !important; /* фон не меняется */
+  color: white !important;                  /* текст не меняется */
+  border: none !important;                  /* рамка не появляется */
+  box-shadow: none !important;             /* убираем тень */
+  outline: none !important;                /* убираем обводку фокуса */
+}
+
+.card-hover {
+  border-radius: 10px;       /* скругление по желанию */
+  overflow: hidden;           /* чтобы кнопка не выходила за рамки */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* легкая тень */
+  transition: transform 0.2s;
+}
+
+.card-hover:hover {
+  transform: scale(1.02);    /* небольшой эффект при hover */
+}
+
+.card-hover button {
+  background-color: transparent !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-size: 1.5rem;
+}
+
+.card-hover button:hover,
+.card-hover button:focus,
+.card-hover button:active {
+  background-color: transparent !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.card-hover {
+  border-radius: 10px;       /* скругление по желанию */
+  overflow: hidden;           /* кнопка не выходит за рамки */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* тень */
+  transition: transform 0.2s;
+}
+
+.card-hover:hover {
+  transform: scale(1.02);    /* легкий hover эффект всей карточки */
+}
+
+.card-hover button {
+  background-color: transparent !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-size: 1.5rem;
+}
+
+.card-hover button:hover,
+.card-hover button:focus,
+.card-hover button:active {
+  background-color: transparent !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
