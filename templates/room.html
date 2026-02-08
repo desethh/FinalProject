@@ -83,6 +83,16 @@
       .chat { width: 100%; height: 250px; margin-bottom: 12px; }
       .board { width: 100%; height: calc(100vh - 250px - 36px); }
     }
+    .tools {
+      position: relative;
+      z-index: 10;
+    }
+
+    canvas {
+      position: relative;
+      z-index: 1;
+    }
+
   </style>
 </head>
 <body>
@@ -94,7 +104,7 @@
     <ul id="chat" class="flex-grow-1 overflow-auto list-unstyled p-2 mb-0"></ul>
     <div class="chat-input mt-auto d-flex gap-2">
       <input id="msg" class="form-control" placeholder="Type a message..." />
-      <button type="button" class="btn btn-light" onclick="sendChat()">Send</button>
+      <button id="sendBtn" type="button" class="btn btn-light">Send</button>
     </div>
   </div>
 
@@ -104,7 +114,7 @@
       <b>Whiteboard</b>
       <label class="mb-0">Size <input id="penSize" type="range" min="1" max="12" value="3"></label>
       <label class="mb-0">Color <input id="penColor" type="color" value="#000000"></label>
-      <button type="button" class="btn btn-outline-light btn-sm" onclick="clearLocal()">Clear</button>
+      <button id="clearBtn" type="button" class="btn btn-outline-light btn-sm">Clear</button>
     </div>
     <canvas id="wb"></canvas>
   </div>
@@ -128,7 +138,8 @@
   function connectWS() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
 
-    ws = new WebSocket(`ws://localhost:8080/ws?room=${roomId}&username=${encodeURIComponent(username)}`);
+    const protocol = location.protocol === "https:" ? "wss" : "ws";
+    ws = new WebSocket(`${protocol}://${location.host}/ws?room=${roomId}&username=${encodeURIComponent(username)}`);
 
     ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
@@ -158,6 +169,19 @@
     ws.send(JSON.stringify({ type: "chat", text }));
     input.value = "";
   }
+
+  document.getElementById("sendBtn").addEventListener("click", sendChat);
+  document.getElementById("sendBtn").addEventListener("touchend", (e) => {
+    e.preventDefault();
+    sendChat();
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", clearLocal);
+  document.getElementById("clearBtn").addEventListener("touchend", (e) => {
+    e.preventDefault();
+    clearLocal();
+  });
+
 
   document.getElementById("msg").addEventListener("keypress", function(e) {
     if (e.key === "Enter") { e.preventDefault(); sendChat(); }
@@ -201,7 +225,12 @@
   let drawing = false;
   let last = null;
 
-  function startDraw(e) { drawing = true; last = getPos(e); e.preventDefault(); }
+  function startDraw(e) {
+    drawing = true;
+    last = getPos(e);
+    e.preventDefault();
+    e.stopPropagation();
+  }
   function moveDraw(e) {
     if (!drawing) return;
     const cur = getPos(e);
@@ -213,15 +242,23 @@
     }
     last = cur;
     e.preventDefault();
+    e.stopPropagation();
   }
-  function endDraw(e) { drawing = false; last = null; e.preventDefault(); }
+  function endDraw(e) {
+    drawing = false;
+    last = null;
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
-  canvas.addEventListener("mousedown", startDraw);
-  canvas.addEventListener("mousemove", moveDraw);
-  window.addEventListener("mouseup", endDraw);
-  canvas.addEventListener("touchstart", startDraw, { passive: false });
-  canvas.addEventListener("touchmove", moveDraw, { passive: false });
-  window.addEventListener("touchend", endDraw);
+  canvas.addEventListener("pointerdown", (e) => {
+    canvas.setPointerCapture(e.pointerId);
+    startDraw(e);
+  });
+
+  canvas.addEventListener("pointermove", moveDraw);
+  canvas.addEventListener("pointerup", endDraw);
+  canvas.addEventListener("pointercancel", endDraw);
 
   window.addEventListener("beforeunload", () => { if (ws) ws.close(); });
 </script>

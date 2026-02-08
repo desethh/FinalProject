@@ -97,8 +97,25 @@ def create_room():
     room_id = r.text.strip()
     return redirect(f"/room/{room_id}")
 
+@app.route("/delete-room/<room_id>", methods=["POST"])
+def delete_room(room_id):
+    if not session.get("auth"):
+        return redirect("/login")
 
+    headers = {
+        "X-Username": session["username"]
+    }
 
+    r = requests.post(
+        f"{GO_BACKEND}/delete-room",
+        json={"room_id": room_id},
+        headers=headers
+    )
+
+    if r.status_code != 200:
+        return Response(r.text, status=r.status_code)
+
+    return redirect("/rooms")
 @app.route("/room/<room_id>")
 def room(room_id):
     if not session.get("auth"):
@@ -138,6 +155,39 @@ def register():
                 status=r.status_code,
                 content_type=r.headers.get("Content-Type")
             )
+        
+@app.route("/profile")
+def profile():
+    if not session.get("auth"):
+        return redirect("/login")
+
+    return render_template("profile.html", username=session["username"])
+
+@app.route("/edit-profile", methods=["POST"])
+def edit_profile():
+    if not session.get("auth"):
+        return redirect("/login")
+    newusername = request.form.get("username")
+    password = request.form.get("password")
+
+    headers = {"X-Username": session["username"]}
+    data = {
+            "newusername": newusername,
+            "password": password
+        }
+    r = requests.post(f"{GO_BACKEND}/edit-profile", data=data, headers=headers)
+
+    if r.status_code == 200:
+        if newusername != "":
+            session["username"] = newusername
+        return redirect("/profile")
+    else:
+        return Response(
+            r.content,
+            status=r.status_code,
+            content_type=r.headers.get("Content-Type")
+        )
+
 @app.route("/rooms-stats", methods=["GET"])
 def rooms_stats():
     r = requests.get(f"{GO_BACKEND}/rooms-stats")

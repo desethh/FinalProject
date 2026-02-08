@@ -40,17 +40,22 @@
   Available Servers
 </h2>
 {{ range . }}
-  <a href="/room/{{ .ID }}" class="text-decoration-none d-block">
     <div class="card room-card mb-3" style="background-color: black;">
-      <div class="card-body d-flex align-items-center">
-        <p class="card-text text-white mb-0">Room: </p>
-        <p class="card-text text-white mb-0">{{ .Owner }}</p>
-        <span class="user-count text-white ms-auto">
-          <span class="current-users" data-room-id="{{ .ID }}">0</span>/<span class="max-users">5</span>
-        </span>
-      </div>
+      <a href="/room/{{ .ID }}" class="text-decoration-none d-block">
+        <div class="card-body d-flex align-items-center">
+          <p class="card-text text-white mb-0">Room: </p>
+          <p class="card-text text-white mb-0">{{ .Owner }}</p>
+          <span class="user-count text-white ms-auto">
+            <span class="current-users" data-room-id="{{ .ID }}">0</span>/<span class="max-users">5</span>
+          </span>
+          
+        </div>
+      </a>
+      <form action="/delete-room/{{ .ID }}", method="post">
+            <button type="submit">Delete Room</button>
+      </form>
     </div>
-  </a>
+  
 {{ end }}
 
 <div id="server-list" class="container my-4">

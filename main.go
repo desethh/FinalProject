@@ -215,6 +215,37 @@ func main() {
 		}
 
 	})
+	http.HandleFunc("/edit-profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		username := r.Header.Get("X-Username")
+		newusername := r.FormValue("newusername")
+		newpassword := r.FormValue("password")
+		var isEx int
+		db.QueryRow("SELECT COUNT(username) FROM Users WHERE username = $1", newusername).Scan(&isEx)
+		if isEx != 0 {
+			http.Error(w, "Username already exists", http.StatusConflict)
+			return
+		}
+
+		if newusername == "" && newpassword == "" {
+			http.Error(w, "Nothing to update", http.StatusBadRequest)
+			w.WriteHeader(http.StatusOK)
+		}
+		if newpassword == "" && newusername != "" {
+			db.Exec("UPDATE users SET username = $1 WHERE username = $2", newusername, username)
+			w.WriteHeader(http.StatusOK)
+		} else if newusername == "" && newpassword != "" {
+			db.Exec("UPDATE users SET password = $1 WHERE username = $2", newpassword, username)
+			w.WriteHeader(http.StatusOK)
+		} else if newusername != "" && newpassword != "" {
+			db.Exec("UPDATE users SET username = $1, password =  $2 WHERE username = $3", newusername, newpassword, username)
+			db.Exec("UPDATE rooms SET owner = $1 WHERE owner = $2", newusername, username)
+			w.WriteHeader(http.StatusOK)
+		}
+	})
 
 	// MESSAGES
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
@@ -276,6 +307,42 @@ func main() {
 			return
 		}
 		w.Write([]byte(roomID))
+	})
+	http.HandleFunc("/delete-room", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		var body struct {
+			RoomID string `json:"room_id"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.RoomID == "" {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		username := r.Header.Get("X-Username")
+		if username == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var isOwner bool
+		db.QueryRow("SELECT EXISTS (SELECT 1 FROM rooms WHERE room_id = $1 AND owner = $2);", body.RoomID, username).Scan(&isOwner)
+		if !isOwner {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		_, err := db.Exec("DELETE FROM rooms WHERE room_id = $1", body.RoomID)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		_, err = db.Exec("DELETE FROM messages WHERE room_id = $1", body.RoomID)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	})
 	http.HandleFunc("/ws-rooms", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)

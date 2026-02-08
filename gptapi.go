@@ -4,13 +4,15 @@ import (
 	"context"
 	"errors"
 
+	"os"
+
 	"google.golang.org/genai"
 )
 
 var geminiClient *genai.Client
 
 func InitGemini(ctx context.Context) error {
-	apiKey := "AIzaSyDOF70e3Xd-Sbm20Ljm4H9F9kRJ92CAeak"
+	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		return errors.New("GEMINI_API_KEY is empty")
 	}

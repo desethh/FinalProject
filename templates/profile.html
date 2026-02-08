@@ -19,9 +19,7 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
             <ul class="navbar-nav">
-                <a class="nav-link" href="main.html" role="button">
-                  Start!
-                </a>
+                <a class="nav-link" href="/" role="button">Menu</a>
             </ul>
           </div>
         </div>
@@ -31,28 +29,22 @@
 
 <div class="user-profile-wrapper">
     <div class="user-profile">
-
-        <a href="profile.html" class="avatar-link">
-            <img src="img/ava.jpg" alt="User Avatar" class="user-avatar">
-        </a>
-
-        <!-- Имя (просто текст) -->
         <div class="user-name">
-            Username
+            {{ username }}
         </div>
 
     </div>
 </div>
 
-<form style="max-width: 400px; margin-top: 30px; margin-left: 25px;">
+<form action="/edit-profile" method="post" style="max-width: 400px; margin-top: 30px; margin-left: 25px;">
   <div class="mb-3">
     <label for="exampleInputEmail1" class="form-label text-white">Nickname</label>
-    <input type="text" class="form-control" id="exampleInputNickname1">
+    <input name="username" type="text" class="form-control" id="exampleInputNickname1">
   </div>
 
   <div class="mb-3">
     <label for="exampleInputPassword1" class="form-label text-white">Password</label>
-    <input type="password" class="form-control" id="exampleInputPassword1">
+    <input name="password" type="password" class="form-control" id="exampleInputPassword1">
   </div>
 
 
