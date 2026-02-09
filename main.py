@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__, static_folder="static")
 app.secret_key = "secret"
 
-GO_BACKEND = "http://localhost:8080"
+GO_BACKEND = "http://backend:8080"
 
 @app.route("/static/<path:path>")
 def static_proxy(path):

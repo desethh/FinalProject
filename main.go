@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-
+	"os"
 	"database/sql"
 
 	"github.com/google/uuid"
@@ -530,8 +530,22 @@ func main() {
 var db *sql.DB
 
 func DBopen() {
-	dsn := "host=localhost port=5432 user=postgres password=gotban7d dbname=postgres sslmode=disable"
+	host := os.Getenv("DB_HOST")
+    	if host == "" { host = "localhost" }
 
+    	port := os.Getenv("DB_PORT")
+    	if port == "" { port = "5432" }
+
+    	user := os.Getenv("DB_USER")
+    	if user == "" { user = "postgres" }
+
+    	pass := os.Getenv("DB_PASSWORD")
+    	if pass == "" { pass = "gotban7d" }
+
+    	name := os.Getenv("DB_NAME")
+    	if name == "" { name = "postgres" }
+
+        dsn := "host=" + host + " port=" + port + " user=" + user + " password=" + pass + " dbname=" + name + " sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", dsn)
 	if err != nil {

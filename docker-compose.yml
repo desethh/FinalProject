@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: appdb
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: gotban7d
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -14,13 +14,15 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.go
+      dockerfile: Dockerfile.backend
+    env_file:
+      - .env
     environment:
       DB_HOST: db
       DB_PORT: "5432"
-      DB_NAME: appdb
+      DB_NAME: postgres
       DB_USER: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: gotban7d
     depends_on:
       - db
     restart: unless-stopped
@@ -39,8 +41,11 @@ services:
     image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/certbot/www:/var/www/certbot
+      - /opt/certbot/conf:/etc/letsencrypt
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - frontend
     restart: unless-stopped
