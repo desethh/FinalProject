@@ -29,7 +29,7 @@ func CallGPT(ctx context.Context, prompt string) (string, error) {
 	}
 
 	resp, err := openaiClient.Responses.New(ctx, responses.ResponseNewParams{
-		Model: openai.ChatModel("gpt-oss-20b"),
+		Model: openai.ChatModel("gpt-4.1-mini"),
 		Input: responses.ResponseNewParamsInputUnion{
 			OfString: openai.String(prompt),
 		},
