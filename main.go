@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
-	"os"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -124,7 +124,7 @@ func broadcastUsersCount(room *Room) {
 func main() {
 	DBopen()
 	ctx := context.Background()
-	if err := InitGemini(ctx); err != nil {
+	if err := InitGPT(ctx); err != nil {
 		log.Fatal("Gemini init error:", err)
 	}
 	fs := http.FileServer(http.Dir("static"))
@@ -354,10 +354,8 @@ func main() {
 		roomsWatchers.conns[conn] = true
 		roomsWatchers.mu.Unlock()
 
-		// сразу отправим snapshot при подключении
 		broadcastRoomsUsers()
 
-		// держим соединение открытым
 		for {
 			if _, _, err := conn.ReadMessage(); err != nil {
 				roomsWatchers.mu.Lock()
@@ -531,21 +529,11 @@ var db *sql.DB
 
 func DBopen() {
 	host := os.Getenv("DB_HOST")
-    	if host == "" { host = "localhost" }
-
-    	port := os.Getenv("DB_PORT")
-    	if port == "" { port = "5432" }
-
-    	user := os.Getenv("DB_USER")
-    	if user == "" { user = "postgres" }
-
-    	pass := os.Getenv("DB_PASSWORD")
-    	if pass == "" { pass = "gotban7d" }
-
-    	name := os.Getenv("DB_NAME")
-    	if name == "" { name = "postgres" }
-
-        dsn := "host=" + host + " port=" + port + " user=" + user + " password=" + pass + " dbname=" + name + " sslmode=disable"
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASSWORD")
+	name := os.Getenv("DB_NAME")
+	dsn := "host=" + host + " port=" + port + " user=" + user + " password=" + pass + " dbname=" + name + " sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", dsn)
 	if err != nil {

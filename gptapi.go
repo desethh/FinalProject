@@ -3,46 +3,40 @@ package main
 import (
 	"context"
 	"errors"
-
 	"os"
 
-	"google.golang.org/genai"
+	openai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
+	"github.com/openai/openai-go/v3/responses"
 )
 
-var geminiClient *genai.Client
+var openaiClient *openai.Client
 
-func InitGemini(ctx context.Context) error {
-	apiKey := os.Getenv("API_KEY")
+func InitGPT(ctx context.Context) error {
+	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return errors.New("GEMINI_API_KEY is empty")
+		return errors.New("OPENAI_API_KEY is empty")
 	}
 
-	c, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  apiKey,
-		Backend: genai.BackendGeminiAPI,
-	})
-	if err != nil {
-		return err
-	}
-
-	geminiClient = c
+	c := openai.NewClient(option.WithAPIKey(apiKey))
+	openaiClient = &c
 	return nil
 }
 
 func CallGPT(ctx context.Context, prompt string) (string, error) {
-	if geminiClient == nil {
-		return "", errors.New("gemini client not initialized")
+	if openaiClient == nil {
+		return "", errors.New("openai client not initialized")
 	}
 
-	resp, err := geminiClient.Models.GenerateContent(
-		ctx,
-		"gemini-3-flash-preview",
-		genai.Text(prompt),
-		nil,
-	)
+	resp, err := openaiClient.Responses.New(ctx, responses.ResponseNewParams{
+		Model: openai.ChatModel("gpt-oss-20b"),
+		Input: responses.ResponseNewParamsInputUnion{
+			OfString: openai.String(prompt),
+		},
+	})
 	if err != nil {
 		return "", err
 	}
 
-	return resp.Text(), nil
+	return resp.OutputText(), nil
 }
