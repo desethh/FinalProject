@@ -22,8 +22,6 @@ var roomsWatchers = struct {
 	conns map[*websocket.Conn]bool
 }{conns: make(map[*websocket.Conn]bool)}
 
-const MaxClientsPerRoom = 5
-
 type WSIn struct {
 	Type string `json:"type"`
 	Text string `json:"text,omitempty"`
@@ -62,7 +60,6 @@ type Message struct {
 	Time string `json:"time,omitempty"`
 
 	Current int            `json:"current,omitempty"`
-	Max     int            `json:"max,omitempty"`
 	Rooms   map[string]int `json:"rooms,omitempty"`
 	X0      float64        `json:"x0,omitempty"`
 	Y0      float64        `json:"y0,omitempty"`
@@ -90,7 +87,6 @@ func broadcastRoomsUsers() {
 
 	msg := Message{
 		Type:  "rooms_users",
-		Max:   MaxClientsPerRoom,
 		Rooms: snapshot,
 	}
 
@@ -113,7 +109,6 @@ func broadcastUsersCount(room *Room) {
 	msg := Message{
 		Type:    "users",
 		Current: count,
-		Max:     MaxClientsPerRoom,
 	}
 
 	for c := range room.Clients {
@@ -392,7 +387,6 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
-			"max":   MaxClientsPerRoom,
 			"rooms": stats,
 		})
 	})
@@ -430,12 +424,6 @@ func main() {
 
 		room.Mu.Lock()
 		room.Clients[client] = true
-		if len(room.Clients) >= MaxClientsPerRoom {
-			room.Mu.Unlock()
-			_ = conn.WriteMessage(websocket.TextMessage, []byte("Room is full (max 5)"))
-			_ = conn.Close()
-			return
-		}
 		room.Mu.Unlock()
 
 		broadcastUsersCount(room)
@@ -450,6 +438,8 @@ func main() {
 
 				broadcastUsersCount(room)
 				broadcastRoomsUsers()
+
+				_ = conn.Close()
 				break
 			}
 

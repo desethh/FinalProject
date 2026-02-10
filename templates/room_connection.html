@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room connection</title>
-    
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style_room_connection.css">
     <style>
       body {
@@ -46,9 +42,8 @@
           <p class="card-text text-white mb-0">Room: </p>
           <p class="card-text text-white mb-0">{{ .Owner }}</p>
           <span class="user-count text-white ms-auto">
-            <span class="current-users" data-room-id="{{ .ID }}">0</span>/<span class="max-users">5</span>
+            <span class="current-users" data-room-id="{{ .ID }}">0</span>/<span class="max-users">inf</span>
           </span>
-          
         </div>
       </a>
       <form action="/delete-room/{{ .ID }}", method="post">
@@ -62,28 +57,22 @@
 </div>
 
 <script>
-async function updateCounts() {
-  try {
-    const res = await fetch("/rooms-stats");
-    const data = await res.json();
+  async function updateCounts() {
+    try {
+      const res = await fetch("/rooms-stats");
+      const data = await res.json();
 
-    // max одинаковый для всех карточек
-    document.querySelectorAll(".max-users").forEach(el => {
-      el.textContent = data.max;
-    });
-
-    // current по room id
-    for (const [roomId, count] of Object.entries(data.rooms)) {
-      const el = document.querySelector(`.current-users[data-room-id="${roomId}"]`);
-      if (el) el.textContent = count;
+      for (const [roomId, count] of Object.entries(data.rooms)) {
+        const el = document.querySelector(`.current-users[data-room-id="${roomId}"]`);
+        if (el) el.textContent = count;
+      }
+    } catch (e) {
+      console.log("rooms-stats error:", e);
     }
-  } catch (e) {
-    console.log("rooms-stats error:", e);
   }
-}
 
-updateCounts();
-setInterval(updateCounts, 1000);
+  updateCounts();
+  setInterval(updateCounts, 1000);
 </script>
 
 

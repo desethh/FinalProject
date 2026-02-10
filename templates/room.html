@@ -100,7 +100,13 @@
 <div class="wrap">
   <!-- CHAT -->
   <div class="chat">
-    <div class="chat-header">Room: {{ room_id }}</div>
+    <div class="chat-header">
+      Room: {{ room_id }}
+      <div id="usersBox" style="margin-top:8px; font-weight:normal;">
+        Users:
+        <div id="usersList" style="margin-top:6px;"></div>
+      </div>
+    </div>
     <ul id="chat" class="flex-grow-1 overflow-auto list-unstyled p-2 mb-0"></ul>
     <div class="chat-input mt-auto d-flex gap-2">
       <input id="msg" class="form-control" placeholder="Type a message..." />
@@ -134,7 +140,25 @@
 
   let ws = null;
   let reconnectTimer = null;
+  async function usersList() {
+    try {
+      const res = await fetch(`/room-users?room=${encodeURIComponent(roomId)}`);
+      const users = await res.json();
 
+      const box = document.getElementById("usersList");
+      if (!box) return;
+
+      box.innerHTML = "";
+      users.forEach(u => {
+        const item = document.createElement("div");
+        item.textContent = u;
+        box.appendChild(item);
+      });
+    } catch (e) {
+      console.log("room get users error:", e);
+    }
+  }
+  
   function connectWS() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
 
@@ -161,6 +185,8 @@
   }
 
   loadHistory().catch(console.log).finally(connectWS);
+  usersList();
+  setInterval(usersList, 1000);
 
   function sendChat() {
     const input = document.getElementById("msg");
