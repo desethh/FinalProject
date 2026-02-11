@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -233,12 +234,12 @@ func main() {
 			_, err := db.Exec("UPDATE users SET username = $1 WHERE username = $2", newusername, username)
 			if err != nil {
 				log.Printf("Error executing statement: %v", err)
-    				return
+				return
 			}
 			_, err = db.Exec("UPDATE rooms SET owner = $1 WHERE owner = $2", newusername, username)
 			if err != nil {
 				log.Printf("Error executing statement: %v", err)
-    				return
+				return
 			}
 			w.WriteHeader(http.StatusOK)
 		} else if newusername == "" && newpassword != "" {
@@ -370,7 +371,7 @@ func main() {
 			}
 		}
 	})
-	
+
 	http.HandleFunc("/room-users", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -432,8 +433,6 @@ func main() {
 		})
 	})
 
-    	
-
 	// WEB SOCKET
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		roomID := r.URL.Query().Get("room")
@@ -494,7 +493,17 @@ func main() {
 			switch in.Type {
 			case "chat":
 				text := strings.TrimSpace(in.Text)
-
+				if strings.HasPrefix(text, "/gpt ") {
+					err = saveGPTMessage(msg, client.Username)
+					if err != nil {
+						log.Println("saveGPTMessage error:", err)
+					}
+				} else {
+					err = saveMessage(msg, client.Username)
+					if err != nil {
+						log.Println("saveMessage error:", err)
+					}
+				}
 				if strings.HasPrefix(text, "/gpt ") {
 					prompt := strings.TrimSpace(strings.TrimPrefix(text, "/gpt "))
 
@@ -578,4 +587,34 @@ func DBopen() {
 	}
 
 	log.Println("База подключена")
+}
+
+func saveMessage(m []byte, username string) error {
+	file, err := os.OpenFile("messages.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	line := fmt.Sprintf("%s [%s] %s\n",
+		time.Now().Format(time.RFC3339),
+		username,
+		string(m),
+	)
+	_, err = file.WriteString(line)
+	return err
+}
+
+func saveGPTMessage(m []byte, username string) error {
+	file, err := os.OpenFile("messages.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	line := fmt.Sprintf("%s [GPT cmd by %s] %s\n",
+		time.Now().Format(time.RFC3339),
+		username,
+		string(m),
+	)
+	_, err = file.WriteString(line)
+	return err
 }
