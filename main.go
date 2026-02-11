@@ -230,7 +230,16 @@ func main() {
 			w.WriteHeader(http.StatusOK)
 		}
 		if newpassword == "" && newusername != "" {
-			db.Exec("UPDATE users SET username = $1 WHERE username = $2", newusername, username)
+			_, err := db.Exec("UPDATE users SET username = $1 WHERE username = $2", newusername, username)
+			if err != nil {
+				log.Printf("Error executing statement: %v", err)
+    				return
+			}
+			_, err = db.Exec("UPDATE rooms SET owner = $1 WHERE owner = $2", newusername, username)
+			if err != nil {
+				log.Printf("Error executing statement: %v", err)
+    				return
+			}
 			w.WriteHeader(http.StatusOK)
 		} else if newusername == "" && newpassword != "" {
 			db.Exec("UPDATE users SET password = $1 WHERE username = $2", newpassword, username)
@@ -361,6 +370,38 @@ func main() {
 			}
 		}
 	})
+	
+	http.HandleFunc("/room-users", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		roomID := r.URL.Query().Get("room")
+		if roomID == "" {
+			http.Error(w, "room is required", http.StatusBadRequest)
+			return
+		}
+
+		room, ok := rooms[roomID]
+		if !ok || room == nil {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode([]string{})
+			return
+		}
+
+		room.Mu.Lock()
+		users := make([]string, 0, len(room.Clients))
+		for c := range room.Clients {
+			if c != nil && c.Username != "" {
+				users = append(users, c.Username)
+			}
+		}
+		room.Mu.Unlock()
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(users)
+	})
 
 	http.HandleFunc("/rooms-stats", func(w http.ResponseWriter, r *http.Request) {
 		rows, err := db.Query("SELECT room_id FROM Rooms")
@@ -390,6 +431,8 @@ func main() {
 			"rooms": stats,
 		})
 	})
+
+    	
 
 	// WEB SOCKET
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

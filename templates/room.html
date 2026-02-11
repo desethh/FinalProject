@@ -22,6 +22,7 @@
     /* CHAT */
     .chat {
       width: 20%;
+      flex: 0 0 320px;
       background: #2c2c2c; /* мягкий темно-серый */
       color: #fff;
       border-radius: 10px;
@@ -98,7 +99,6 @@
 <body>
 
 <div class="wrap">
-  <!-- CHAT -->
   <div class="chat">
     <div class="chat-header">
       Room: {{ room_id }}
@@ -114,7 +114,6 @@
     </div>
   </div>
 
-  <!-- WHITEBOARD -->
   <div class="board">
     <div class="tools">
       <b>Whiteboard</b>
@@ -186,7 +185,7 @@
 
   loadHistory().catch(console.log).finally(connectWS);
   usersList();
-  setInterval(usersList, 1000);
+	  setInterval(usersList, 1000);
 
   function sendChat() {
     const input = document.getElementById("msg");
