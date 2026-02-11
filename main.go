@@ -590,7 +590,7 @@ func DBopen() {
 }
 
 func saveMessage(m []byte, username string) error {
-	file, err := os.OpenFile("messages.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("data/messages.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -605,7 +605,7 @@ func saveMessage(m []byte, username string) error {
 }
 
 func saveGPTMessage(m []byte, username string) error {
-	file, err := os.OpenFile("messages.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("data/messages.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
