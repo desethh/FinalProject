@@ -1,7 +1,2 @@
 .env
-default.conf
-nginx/default.conf
-docker-compose.yml
-Dockerfile.backend
-Dockerfile.py
 data/messages.txt

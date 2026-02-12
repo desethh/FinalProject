@@ -54,11 +54,6 @@ type Room struct {
 	Mu sync.Mutex
 }
 
-type RoomsPageData struct {
-	Username string
-	Rooms    []Room
-}
-
 type Message struct {
 	Type string `json:"type"`
 	User string `json:"user,omitempty"`
@@ -149,6 +144,7 @@ func main() {
 				http.Error(w, "Database error", http.StatusInternalServerError)
 				return
 			}
+			defer rows.Close()
 			var rooms []Room
 			for rows.Next() {
 				var rm Room
