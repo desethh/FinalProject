@@ -101,7 +101,7 @@
 <div class="wrap">
   <div class="chat">
     <div class="chat-header">
-      Room: {{ room_id }}
+      Room: {{ username }}
       <div id="usersBox" style="margin-top:8px; font-weight:normal;">
         Users:
         <div id="usersList" style="margin-top:6px;"></div>
@@ -112,6 +112,9 @@
       <input id="msg" class="form-control" placeholder="Type a message..." />
       <button id="sendBtn" type="button" class="btn btn-light">Send</button>
     </div>
+    <div style="display: flex; margin-left: 10px; margin-bottom: 10px; opacity: 0.3;">
+      Use /gpt to talk with AI
+    </div>
   </div>
 
   <div class="board">
@@ -119,7 +122,8 @@
       <b>Whiteboard</b>
       <label class="mb-0">Size <input id="penSize" type="range" min="1" max="12" value="3"></label>
       <label class="mb-0">Color <input id="penColor" type="color" value="#000000"></label>
-      <button id="clearBtn" type="button" class="btn btn-outline-light btn-sm">Clear</button>
+      <button id="clearBtn" type="button" class="btn btn-outline-light btn-sm">Clear(local)</button>
+      <button id="clearGlobalBtn" type="button" class="btn btn-danger btn-sm">Clear(global)</button>
     </div>
     <canvas id="wb"></canvas>
   </div>
@@ -168,6 +172,7 @@
       const msg = JSON.parse(e.data);
       if (msg.type === "chat") addLine(msg.user, msg.text);
       if (msg.type === "draw") drawLine(msg.x0, msg.y0, msg.x1, msg.y1, msg.color, msg.size);
+      if (msg.type === "clear") clearLocal();
     };
 
     ws.onclose = () => {
@@ -206,6 +211,11 @@
     e.preventDefault();
     clearLocal();
   });
+  document.getElementById("clearGlobalBtn").addEventListener("click", clearGlobal);
+  document.getElementById("clearGlobalBtn").addEventListener("touchend", (e) => {
+    e.preventDefault();
+    clearGlobal();
+  });
 
 
   document.getElementById("msg").addEventListener("keypress", function(e) {
@@ -239,6 +249,12 @@
   function clearLocal() {
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
+  }
+
+  function clearGlobal() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "clear" }));
+    }
   }
 
   function getPos(evt) {

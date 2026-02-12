@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Start!</title>
@@ -15,54 +15,76 @@
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-grey">
-        <div class="container-fluid">
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
-            <ul class="navbar-nav">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  {{ .Username }}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
-                  <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                  <li><a class="dropdown-item" href="/logout">Logout</a></li>
-                </ul>
-              </li>
-            </ul>
-          </div>
+      <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ .Username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
+                <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                <li><a class="dropdown-item" href="/logout">Logout</a></li>
+              </ul>
+            </li>
+          </ul>
         </div>
-      </nav>
+      </div>
+    </nav>
+<div class="container mt-5 text-center text-white">
+  <h1 class="mb-2">Welcome To TogetherEdu</h1>
+  <p class="mb-4" style="opacity:0.85;">
+    Create or join a room to chat, draw on a shared whiteboard.
+  </p>
+</div>
 
-      <div class="container vh-100 d-flex justify-content-center align-items-center">
-  <div class="row w-100 g-4 justify-content-center">
-
-    <!-- Карточка 1 -->
+<div class="container d-flex justify-content-center align-items-center">
+  <div class="row w-100 g-4 justify-content-center" style="max-width: 1100px;">
     <div class="col-md-5">
-      <div class="card bg-dark text-white card-hover w-100 p-0"> <!-- убрали padding с карточки -->
+      <div class="card bg-dark text-white card-hover w-100 p-0">
         <form action="/create-room" method="post" class="w-100 h-100 m-0 p-0">
-          <button type="submit" class="btn btn-dark w-100 h-100 text-center d-flex justify-content-center align-items-center p-0">
+          <button type="submit"
+                  class="btn btn-dark w-100 h-100 text-center d-flex justify-content-center align-items-center p-0"
+                  title="Create your own room and share it with friends">
             <h2 class="m-0">Create the room</h2>
           </button>
         </form>
       </div>
+      <div class="text-white mt-2 text-center" style="opacity:0.7;">
+        Creates a new private room link
+      </div>
     </div>
-
-    <!-- Карточка 2 -->
     <div class="col-md-5">
-      <div class="card bg-dark text-white card-hover w-100 p-0"> <!-- убрали padding -->
+      <div class="card bg-dark text-white card-hover w-100 p-0">
         <form action="/rooms" method="get" class="w-100 h-100 m-0 p-0">
-          <button type="submit" class="btn btn-dark w-100 h-100 text-center d-flex justify-content-center align-items-center p-0">
+          <button type="submit"
+                  class="btn btn-dark w-100 h-100 text-center d-flex justify-content-center align-items-center p-0"
+                  title="Join an existing room and collaborate in real time">
             <h2 class="m-0">Connect Room</h2>
           </button>
         </form>
       </div>
+      <div class="text-white mt-2 text-center" style="opacity:0.7;">
+        Choose a room from the list
+      </div>
     </div>
 
+    <footer>
+    <div class="col-12 mt-4">
+      <div class="text-center text-white" style="opacity:0.85;">
+        <h5 class="mb-2">How it works</h5>
+        <div>• Create a room and share the link with friends</div>
+        <div>• Join a room to chat and draw together in real time</div>
+        <div>• Use <b>/gpt</b> inside the room to talk with AI</div>
+        <div>• Rooms can be limited to a maximum number of users</div>
+      </div>
+    </div>
+    </footer>
   </div>
 </div>
-
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -559,6 +559,13 @@ func main() {
 				for c := range room.Clients {
 					_ = c.Conn.WriteJSON(drawMsg)
 				}
+			case "clear":
+				clearMsg := Message{
+					Type: "clear",
+				}
+				for c := range room.Clients {
+					_ = c.Conn.WriteJSON(clearMsg)
+				}
 			}
 
 		}
