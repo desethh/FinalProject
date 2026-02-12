@@ -4,19 +4,12 @@ html, body {
 }
 
 body {
-    height: 100%;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
-}
-
-body {
     background:
       linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-      url("img/bg.jpg") center / cover no-repeat;
+      url("img/bg.jpg") center / cover no-repeat fixed;
 }
 
-/* --- Карточка --- */
+
 #auth-card {
     width: 100%;
     max-width: 400px;
@@ -27,7 +20,7 @@ body {
     transition: all 0.3s ease;
 }
 
-/* --- Toggle кнопки --- */
+
 .toggle-btn {
     border-radius: 0;
     flex: 1;
@@ -42,7 +35,6 @@ body {
     color: #fff;
 }
 
-/* --- Формы --- */
 .auth-form {
     display: none;
     opacity: 0;
@@ -54,7 +46,7 @@ body {
     opacity: 1;
 }
 
-/* --- Кнопка --- */
+
 .btn-primary {
     background: #667eea;
     border: none;
@@ -65,7 +57,7 @@ body {
     background: #5a67d8;
 }
 
-/* --- Поля ввода --- */
+
 .form-control {
     border-radius: 10px;
     background: #444;
@@ -77,7 +69,7 @@ body {
     color: #ccc;
 }
 
-/* --- Ссылки --- */
+
 #auth-card a {
     color: #667eea;
     text-decoration: none;
@@ -88,54 +80,54 @@ body {
     text-decoration: underline;
 }
 
-/* --- Заголовки --- */
+
 .card-header, .form-label {
     color: #fff;
 }
 
-/* Общие стили для toggle-кнопок */
+
 .toggle-btn {
-    background-color: #2b2b2b;   /* темный фон кнопки */
-    color: #ccc;                  /* светло-серый текст */
-    border: none;                 /* без рамки */
+    background-color: #2b2b2b;   
+    color: #ccc;             
+    border: none;              
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    border-radius: 0.25rem;       /* слегка закругленные углы */
+    border-radius: 0.25rem;    
 }
 
 /* Активная кнопка */
 .toggle-btn.active {
-    background-color: #444;       /* чуть светлее для выделения */
+    background-color: #444;     
     color: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.6); /* мягкое подсвечивание */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.6); 
 }
 
-/* Hover эффект для всех кнопок */
+
 .toggle-btn:hover {
-    background-color: #555;       /* подсветка при наведении */
+    background-color: #555;      
     color: #fff;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.7); /* усиленное мягкое свечение */
+    box-shadow: 0 2px 12px rgba(0,0,0,0.7); 
 }
 
 #auth-card {
     width: 100%;
     max-width: 400px;
     border-radius: 15px;
-    background: rgba(43, 43, 43, 0.2);  /* более прозрачный фон */
+    background: rgba(43, 43, 43, 0.2); 
     color: white;
     overflow: hidden;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.5); /* мягкая тень */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
     
-    /* ---- стеклянный эффект ---- */
-    backdrop-filter: blur(3px);          /* размытие фона за карточкой */
-    -webkit-backdrop-filter: blur(10px);  /* для Safari */
-    border: 1px solid rgba(255,255,255,0.05); /* очень тонкая рамка */
+ 
+    backdrop-filter: blur(3px);          
+    -webkit-backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255,255,255,0.05); 
 }
 
-/* --- Hover подсветка --- */
+
 #auth-card:hover {
     box-shadow: 0 12px 30px rgba(0,0,0,0.6);
-    background: rgba(43, 43, 43, 0.25); /* чуть ярче при наведении */
+    background: rgba(43, 43, 43, 0.25); 
 }
 
 

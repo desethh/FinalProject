@@ -3,17 +3,11 @@ html, body {
     margin: 0;
 }
 
-body {
-    background-image: url("img/bg.jpg");
-    background-size: cover;  
-    background-position: center;
-    background-repeat: no-repeat;
-}
 
 body {
     background:
-      linear-gradient(rgba(0, 0, 0, 0.8), rgba(0,0,0,0.8)),
-      url("img/bg.jpg") center / cover no-repeat;
+      linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+      url("img/bg.jpg") center / cover no-repeat fixed;
 }
 
 .navbar-nav .nav-link {
@@ -23,7 +17,7 @@ body {
 
 
 .room-card {
-  background: rgba(40, 40, 40, 0.45); /* полупрозрачный */
+  background: rgba(40, 40, 40, 0.45); 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
