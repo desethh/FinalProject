@@ -8,9 +8,6 @@
   <link rel="stylesheet" href="/FinalProject/static/style_room.css">
 
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #eee; }
-
-    /* Основной контейнер */
     .wrap {
       display: flex;
       height: 100vh;
@@ -19,11 +16,11 @@
       box-sizing: border-box;
     }
 
-    /* CHAT */
+
     .chat {
       width: 20%;
       flex: 0 0 320px;
-      background: #2c2c2c; /* мягкий темно-серый */
+      background: #2c2c2c; 
       color: #fff;
       border-radius: 10px;
       display: flex;
@@ -51,10 +48,10 @@
     }
     .chat-input input::placeholder { color: #ccc; }
 
-    /* WHITEBOARD */
+ 
     .board {
       flex: 1;
-      background: #2c2c2c; /* мягкий темно-серый */
+      background: #2c2c2c; 
       border-radius: 10px;
       display: flex;
       flex-direction: column;
@@ -67,7 +64,7 @@
       align-items: center;
       margin-bottom: 10px;
       flex-wrap: wrap;
-      color: #fff; /* текст белый */
+      color: #fff;
     }
     .tools input { margin-left: 5px; }
     canvas {
@@ -78,7 +75,7 @@
       touch-action: none;
     }
 
-    /* Адаптивность */
+
     @media (max-width: 767px) {
       .wrap { flex-direction: column; height: auto; }
       .chat { width: 100%; height: 250px; margin-bottom: 12px; }

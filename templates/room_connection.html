@@ -42,16 +42,14 @@
           </span>
         </div>
       </a>
-        <form action="/delete-room/{{ .ID }}" method="post" class="d-flex justify-content-center m-2">
+        
+
+      {{ if eq .Owner $me }}
+      <form action="/delete-room/{{ .ID }}" method="post" class="d-flex justify-content-center m-2">
           <button type="submit" class="btn btn-danger px-3 py-1">
               Delete Room
           </button>
         </form>
-
-      {{ if eq .Owner $me }}
-      <form action="/delete-room/{{ .ID }}", method="post">
-            <button type="submit">Delete Room</button>
-      </form>
       {{ end }}
     </div>
 {{ end }}

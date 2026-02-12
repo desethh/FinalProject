@@ -21,7 +21,6 @@ body {
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
-
 .card-hover {
     background: rgba(0, 0, 0, 0.7);
 }
