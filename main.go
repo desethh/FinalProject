@@ -54,6 +54,11 @@ type Room struct {
 	Mu sync.Mutex
 }
 
+type RoomsPageData struct {
+	Username string
+	Rooms    []Room
+}
+
 type Message struct {
 	Type string `json:"type"`
 	User string `json:"user,omitempty"`
