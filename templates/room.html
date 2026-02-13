@@ -225,8 +225,8 @@
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(rect.width * ratio);
-    canvas.height = Math.floor(rect.height * ratio);
+    canvas.width = Math.round(rect.width * ratio);
+    canvas.height = Math.round(rect.height * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
@@ -244,8 +244,11 @@
   }
 
   function clearLocal() {
-    const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const ratio = window.devicePixelRatio || 1;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
   function clearGlobal() {
@@ -257,7 +260,15 @@
   function getPos(evt) {
     const rect = canvas.getBoundingClientRect();
     const t = evt.touches ? evt.touches[0] : evt;
-    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+
+    const scaleX = rect.width ? (canvas.width / rect.width) : 1;
+    const scaleY = rect.height ? (canvas.height / rect.height) : 1;
+
+    const x = (t.clientX - rect.left) * scaleX;
+    const y = (t.clientY - rect.top) * scaleY;
+
+    const ratio = window.devicePixelRatio || 1;
+    return { x: x / ratio, y: y / ratio };
   }
 
   let drawing = false;
